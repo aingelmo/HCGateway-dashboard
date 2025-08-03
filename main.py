@@ -64,16 +64,6 @@ def refresh_access_token(refresh_token: str) -> dict:
         return resp_json
 
 
-def is_token_expired() -> bool:
-    """Check if the current token is expired or about to expire (within 5 minutes)."""
-    expiry = token_data.get("expiry")
-    if not expiry:
-        return True
-    now = datetime.now(UTC)
-    # Refresh if less than 5 minutes left
-    return (expiry - now).total_seconds() < TOKEN_EXPIRY_MARGIN_SECONDS
-
-
 def ensure_valid_token(hcg_username: str, hcg_password: str) -> None:
     """Ensure a valid access token is available, refreshing if needed."""
     if not token_data["access_token"] or is_token_expired():
@@ -85,9 +75,20 @@ def ensure_valid_token(hcg_username: str, hcg_password: str) -> None:
         token_data["refresh_token"] = resp.get("refresh")
         expiry_str = resp.get("expiry")
         if expiry_str:
-            token_data["expiry"] = datetime.fromisoformat(expiry_str).astimezone(UTC)
+            # Store expiry as ISO string for type consistency
+            token_data["expiry"] = expiry_str
         else:
             token_data["expiry"] = None
+
+
+def is_token_expired() -> bool:
+    """Check if the current token is expired or about to expire (within 5 minutes)."""
+    expiry_str = token_data.get("expiry")
+    if not expiry_str:
+        return True
+    expiry = datetime.fromisoformat(expiry_str).astimezone(UTC)
+    now = datetime.now(UTC)
+    return (expiry - now).total_seconds() < TOKEN_EXPIRY_MARGIN_SECONDS
 
 
 def main() -> None:
