@@ -124,7 +124,7 @@ def main() -> None:
     logger.info("Starting HCGateway login script.")
 
     hcg_username = os.getenv("HCGATEWAY_USERNAME")
-    hcg_password = os.getenv("HCGATEGAY_PASSWORD")
+    hcg_password = os.getenv("HCGATEWAY_PASSWORD")
 
     if not hcg_username or not hcg_password:
         msg = "Missing HCGATEWAY_USERNAME or HCGATEWAY_PASSWORD environment variables."
@@ -133,6 +133,13 @@ def main() -> None:
 
     ensure_valid_token(hcg_username, hcg_password)
     logger.info("Current access token: %s", token_data["access_token"])
+
+    # Test fetch_data with the 'steps' method and an empty MongoDB query
+    try:
+        result = fetch_data("steps", {}, hcg_username, hcg_password)
+        logger.info("Fetched data for 'steps': %s", result)
+    except requests.RequestException:
+        logger.exception("Failed to fetch 'steps' data")
 
 
 if __name__ == "__main__":
