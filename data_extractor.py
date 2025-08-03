@@ -6,12 +6,7 @@ from datetime import UTC, datetime
 import requests
 from dotenv import load_dotenv
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("hcgateway.data_extractor")
 
 load_dotenv()
 
