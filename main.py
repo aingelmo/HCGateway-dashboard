@@ -91,6 +91,34 @@ def is_token_expired() -> bool:
     return (expiry - now).total_seconds() < TOKEN_EXPIRY_MARGIN_SECONDS
 
 
+def fetch_data(
+    method: str,
+    queries: dict,
+    hcg_username: str,
+    hcg_password: str,
+) -> dict:
+    """Fetch data from the API using the specified method and queries."""
+    ensure_valid_token(hcg_username, hcg_password)
+    url = f"https://api.hcgateway.shuchir.dev/api/v2/fetch/{method}"
+    headers = {
+        "Authorization": f"Bearer {token_data['access_token']}",
+        "Content-Type": "application/json",
+    }
+    data = {"queries": queries}
+    try:
+        logger.debug("Sending POST request to %s with queries %s", url, queries)
+        response = requests.post(url, headers=headers, json=data, timeout=10)
+        logger.info("Fetch response status code: %s", response.status_code)
+        response.raise_for_status()
+        resp_json = response.json()
+        logger.debug("Fetch response JSON: %s", resp_json)
+    except requests.RequestException:
+        logger.exception("Fetch request failed")
+        raise
+    else:
+        return resp_json
+
+
 def main() -> None:
     """Entry point for the HCGateway login script."""
     logger.info("Starting HCGateway login script.")
