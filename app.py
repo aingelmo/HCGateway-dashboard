@@ -3,9 +3,9 @@
 Simplified for clarity and maintainability.
 """
 
+import datetime
 import logging
 import os
-from datetime import datetime
 
 import pandas as pd
 import streamlit as st
@@ -34,9 +34,8 @@ st.title("HCGateway Steps Visualizer")
 # --- Constants ---
 DATE_RANGE_LENGTH = 2
 
+
 # --- Credential Handling ---
-
-
 def get_credentials() -> tuple[str, str, bool]:
     """Get credentials from env or user input."""
     username = os.getenv("HCGATEWAY_USERNAME")
@@ -50,17 +49,29 @@ def get_credentials() -> tuple[str, str, bool]:
     return username, password, True
 
 
-# --- Data Processing ---
+# --- Date Range Selection ---
+def get_date_range() -> tuple[datetime.date, datetime.date]:
+    """Return the selected date range (default: last month to today)."""
+    today = datetime.datetime.now().astimezone().date()
+    default_end = today
+    if today.month == 1:
+        default_start = today.replace(year=today.year - 1, month=12)
+    else:
+        default_start = today.replace(month=today.month - 1)
+    min_date = today.replace(year=today.year - 5)
+    date_range = st.date_input(
+        "Select date range",
+        value=(default_start, default_end),
+        min_value=min_date,
+        max_value=today,
+    )
+    if isinstance(date_range, tuple) and len(date_range) == DATE_RANGE_LENGTH:
+        return date_range
+    return today, today
+
+
 def parse_steps(steps: list[dict]) -> pd.DataFrame | None:
-    """Convert raw steps list to DataFrame with date, count, and source.
-
-    Args:
-        steps (list[dict]): List of step entries.
-
-    Returns:
-        pd.DataFrame | None: DataFrame with columns date, count, source, or None if no valid records.
-
-    """
+    """Convert raw steps list to DataFrame with date, count, and source."""
     records = []
     for entry in steps:
         date_raw = entry.get("end") or entry.get("start")
@@ -70,7 +81,7 @@ def parse_steps(steps: list[dict]) -> pd.DataFrame | None:
         if date_raw:
             try:
                 date_str = date_raw.replace("Z", "+00:00")
-                date_obj = datetime.fromisoformat(date_str)
+                date_obj = datetime.datetime.fromisoformat(date_str)
                 date_fmt = date_obj.strftime("%d-%m-%Y")
             except ValueError:
                 date_fmt = date_raw
@@ -80,54 +91,56 @@ def parse_steps(steps: list[dict]) -> pd.DataFrame | None:
     return pd.DataFrame(records) if records else None
 
 
-# --- Main App Logic ---
-hcg_username, hcg_password, submitted = get_credentials()
+# --- API Fetch Logic ---
+def fetch_steps_for_range(
+    hcg_username: str,
+    hcg_password: str,
+    start_date: datetime.date,
+    end_date: datetime.date,
+) -> list[dict]:
+    """Fetch steps data from API for the given date range."""
+    date_query = {
+        "end": {
+            "$gte": start_date.strftime("%Y-%m-%dT00:00:00Z"),
+            "$lte": end_date.strftime("%Y-%m-%dT23:59:59Z"),
+        },
+    }
+    data = fetch_data("steps", date_query, hcg_username, hcg_password)
+    return data if isinstance(data, list) else []
 
-if submitted:
+
+# --- Main App Logic ---
+def main() -> None:
+    """Run the Streamlit HCGateway Steps Visualizer app.
+
+    Handle user authentication, date range selection, data fetching, and visualization.
+    """
+    hcg_username, hcg_password, submitted = get_credentials()
+    if not submitted:
+        return
     if not hcg_username or not hcg_password:
         st.error("Please enter both username and password.")
-    else:
-        try:
-            st.info("Attempting to fetch steps from API...")
-            # Date range input with default value of last month
-            today = datetime.now().astimezone().date()
-            default_end = today
-            if today.month == 1:
-                default_start = today.replace(year=today.year - 1, month=12)
-            else:
-                default_start = today.replace(month=today.month - 1)
-            min_date = today.replace(year=today.year - 5)
-            date_range = st.date_input(
-                "Select date range",
-                value=(default_start, default_end),
-                min_value=min_date,
-                max_value=today,
-            )
-            if isinstance(date_range, tuple) and len(date_range) == DATE_RANGE_LENGTH:
-                start_date, end_date = date_range
-            else:
-                start_date = end_date = today
-            # Build date_query from slider
-            date_query = {
-                "end": {
-                    "$gte": start_date.strftime("%Y-%m-%dT00:00:00Z"),
-                    "$lte": end_date.strftime("%Y-%m-%dT23:59:59Z"),
-                },
-            }
-            data = fetch_data("steps", date_query, hcg_username, hcg_password)
-            steps = data if isinstance(data, list) else []
-            if not steps:
-                st.warning("No steps data found. Check the query, credentials, and API connectivity.")
-            else:
-                st.success("Steps data fetched successfully.")
-                df = parse_steps(steps)
-                if df is not None:
-                    st.line_chart(df.set_index("date")["count"])
-                    st.dataframe(df)
-                else:
-                    st.warning("No valid step records to display.")
-        except (KeyError, ValueError, TypeError) as e:
-            st.error(f"Failed to fetch steps: {e}")
-        except RuntimeError:
-            st.error("A runtime error occurred. Please try again later.")
-            st.stop()
+        return
+    try:
+        st.info("Attempting to fetch steps from API...")
+        start_date, end_date = get_date_range()
+        steps = fetch_steps_for_range(hcg_username, hcg_password, start_date, end_date)
+        if not steps:
+            st.warning("No steps data found. Check the query, credentials, and API connectivity.")
+            return
+        st.success("Steps data fetched successfully.")
+        df = parse_steps(steps)
+        if df is not None:
+            st.line_chart(df.set_index("date")["count"])
+            st.dataframe(df)
+        else:
+            st.warning("No valid step records to display.")
+    except (KeyError, ValueError, TypeError) as e:
+        st.error(f"Failed to fetch steps: {e}")
+    except RuntimeError:
+        st.error("A runtime error occurred. Please try again later.")
+        st.stop()
+
+
+if __name__ == "__main__":
+    main()
