@@ -4,19 +4,17 @@ import logging
 from datetime import UTC, datetime
 
 import requests
-from dotenv import load_dotenv
+
+from config import TOKEN_EXPIRY_MARGIN_SECONDS
 
 logger = logging.getLogger("hcgateway.data_extractor")
 
-load_dotenv()
 
 token_data: dict[str, str | None] = {
     "access_token": None,
     "refresh_token": None,
     "expiry": None,
 }
-
-TOKEN_EXPIRY_MARGIN_SECONDS = 300  # 5 minutes
 
 
 def get_access_token(hcg_username: str, hcg_password: str) -> dict:

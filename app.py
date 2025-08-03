@@ -4,42 +4,22 @@ Simplified for clarity and maintainability.
 """
 
 import datetime
-import logging
-import os
 
 import pandas as pd
 import streamlit as st
-from dotenv import load_dotenv
 
-from data_extractor import fetch_data
+import data_extractor
+from config import DATE_RANGE_LENGTH, HCGATEWAY_PASSWORD, HCGATEWAY_USERNAME
 
-# --- Logging Config ---
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-)
-project_logger = logging.getLogger("hcgateway")
-project_logger.setLevel(logging.DEBUG)
-if not project_logger.hasHandlers():
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s"))
-    project_logger.addHandler(handler)
-logging.getLogger("streamlit").setLevel(logging.INFO)
-
-# --- App Config ---
-load_dotenv()
 st.set_page_config(page_title="HCGateway Steps Visualizer", layout="centered")
 st.title("HCGateway Steps Visualizer")
-
-# --- Constants ---
-DATE_RANGE_LENGTH = 2
 
 
 # --- Credential Handling ---
 def get_credentials() -> tuple[str, str, bool]:
-    """Get credentials from env or user input."""
-    username = os.getenv("HCGATEWAY_USERNAME")
-    password = os.getenv("HCGATEWAY_PASSWORD")
+    """Get credentials from config or user input."""
+    username = HCGATEWAY_USERNAME
+    password = HCGATEWAY_PASSWORD
     if not username or not password:
         with st.form("login_form"):
             username = st.text_input("Username", key="username")
@@ -105,7 +85,7 @@ def fetch_steps_for_range(
             "$lte": end_date.strftime("%Y-%m-%dT23:59:59Z"),
         },
     }
-    data = fetch_data("steps", date_query, hcg_username, hcg_password)
+    data = data_extractor.fetch_data("steps", date_query, hcg_username, hcg_password)
     return data if isinstance(data, list) else []
 
 
