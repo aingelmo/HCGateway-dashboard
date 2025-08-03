@@ -1,10 +1,6 @@
-"""Main script for HCGateway login functionality."""
+"""Main script for HCGateway login functionality (data extraction functions)."""
 
-import argparse
-import json
 import logging
-import os
-import sys
 from datetime import UTC, datetime
 
 import requests
@@ -118,55 +114,3 @@ def fetch_data(
         raise
     else:
         return resp_json
-
-
-def main() -> None:
-    """Entry point for the HCGateway login script."""
-    parser = argparse.ArgumentParser(description="Fetch data from HCGateway API.")
-    parser.add_argument("method", type=str, help="API method to fetch (e.g., steps)")
-    parser.add_argument(
-        "--query",
-        type=str,
-        default="{}",
-        help="MongoDB query as a JSON string (default: '{}')",
-    )
-    args = parser.parse_args()
-
-    if not args.method:
-        sys.stderr.write("Error: method argument is required.\n")
-        sys.exit(1)
-
-    logger.info("Starting HCGateway login script.")
-
-    hcg_username = os.getenv("HCGATEWAY_USERNAME")
-    hcg_password = os.getenv("HCGATEWAY_PASSWORD")
-
-    if not hcg_username or not hcg_password:
-        msg = "Missing HCGATEWAY_USERNAME or HCGATEWAY_PASSWORD environment variables."
-        logger.error(msg)
-        sys.stderr.write(msg + "\n")
-        sys.exit(1)
-
-    ensure_valid_token(hcg_username, hcg_password)
-    logger.info("Current access token: [REDACTED]")
-
-    try:
-        queries = json.loads(args.query)
-    except json.JSONDecodeError:
-        logger.exception("Invalid JSON for --query")
-        sys.stderr.write("Invalid JSON for --query.\n")
-        sys.exit(1)
-
-    try:
-        result = fetch_data(args.method, queries, hcg_username, hcg_password)
-        logger.info("Fetched data for '%s'", args.method)
-        logger.info("Fetched data output (JSON): %s", json.dumps(result, indent=2))
-        sys.stdout.write(json.dumps(result, indent=2) + "\n")
-    except requests.RequestException:
-        logger.exception("Failed to fetch '%s' data", args.method)
-        sys.stderr.write(f"Failed to fetch '{args.method}' data.\n")
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()
