@@ -9,8 +9,12 @@ version         = "0.1.0"
 [dependency-groups]
 dev = [
     "pytest>=8.4.1",
-    "ruff>=0.12.7",
+ "pytest-cov>=6.2.1",
+ "ruff>=0.12.7",
 ]
 
-[tool.ruff.lint]
-select = ["ALL"]
+[tool.ruff]
+exclude = ["tests/*", "docs/*"]
+
+    [tool.ruff.lint]
+    select = ["ALL"]
