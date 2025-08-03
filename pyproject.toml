@@ -1,5 +1,5 @@
 [project]
-dependencies    = ["dotenv>=0.9.9", "requests>=2.32.4"]
+dependencies    = ["dotenv>=0.9.9", "requests>=2.32.4", "streamlit>=1.47.1"]
 description     = "Dashboard for HCGateway data"
 name            = "hcgateway-dashboard"
 readme          = "README.md"
