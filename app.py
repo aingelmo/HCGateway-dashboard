@@ -10,6 +10,7 @@ import streamlit as st
 
 import data_extractor
 from config import DATE_RANGE_LENGTH, HCGATEWAY_PASSWORD, HCGATEWAY_USERNAME
+from models.steps import validate_steps_list
 
 st.set_page_config(page_title="HCGateway Steps Visualizer", layout="centered")
 st.title("HCGateway Steps Visualizer")
@@ -51,21 +52,18 @@ def get_date_range() -> tuple[datetime.date, datetime.date]:
 
 
 def parse_steps(steps: list[dict]) -> pd.DataFrame | None:
-    """Convert raw steps list to DataFrame with date, count, and source."""
+    """Convert raw steps list to DataFrame with date, count, and source. Validates using StepsRecord."""
+    try:
+        validated = validate_steps_list(steps)
+    except (ValueError, TypeError) as e:
+        st.error(f"Step data validation failed: {e}")
+        return None
     records = []
-    for entry in steps:
-        date_raw = entry.get("end") or entry.get("start")
-        count = entry.get("data", {}).get("count")
-        # Format date as DD-MM-YYYY
-        date_fmt = None
-        if date_raw:
-            try:
-                date_str = date_raw.replace("Z", "+00:00")
-                date_obj = datetime.datetime.fromisoformat(date_str)
-                date_fmt = date_obj.strftime("%d-%m-%Y")
-            except ValueError:
-                date_fmt = date_raw
-        source = entry.get("app", "unknown")
+    for entry in validated:
+        dt_obj = entry.end_dt or entry.start_dt
+        count = entry.data.count
+        date_fmt = dt_obj.strftime("%d-%m-%Y") if dt_obj else None
+        source = entry.app or "unknown"
         if date_fmt and count is not None:
             records.append({"date": date_fmt, "count": count, "source": source})
     return pd.DataFrame(records) if records else None
@@ -78,7 +76,7 @@ def fetch_steps_for_range(
     start_date: datetime.date,
     end_date: datetime.date,
 ) -> list[dict]:
-    """Fetch steps data from API for the given date range."""
+    """Fetch steps data from API for the given date range. Validates using StepsRecord."""
     date_query = {
         "end": {
             "$gte": start_date.strftime("%Y-%m-%dT00:00:00Z"),
@@ -86,7 +84,15 @@ def fetch_steps_for_range(
         },
     }
     data = data_extractor.fetch_data("steps", date_query, hcg_username, hcg_password)
-    return data if isinstance(data, list) else []
+    if not isinstance(data, list):
+        return []
+    # Validate step data before returning
+    try:
+        validate_steps_list(data)
+    except (ValueError, TypeError) as e:
+        st.error(f"Step data validation failed: {e}")
+        return []
+    return data
 
 
 # --- Main App Logic ---

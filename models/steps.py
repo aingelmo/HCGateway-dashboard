@@ -36,6 +36,28 @@ class StepsRecord(BaseModel):
             raise ValueError(msg) from err
         return v
 
+    @property
+    def end_dt(self) -> datetime | None:
+        """Return the 'end' field as a datetime object, or None if invalid."""
+        v = self.end
+        if v.endswith("Z"):
+            v = v[:-1] + "+00:00"
+        try:
+            return datetime.fromisoformat(v)
+        except (ValueError, TypeError):
+            return None
+
+    @property
+    def start_dt(self) -> datetime | None:
+        """Return the 'start' field as a datetime object, or None if invalid."""
+        v = self.start
+        if v.endswith("Z"):
+            v = v[:-1] + "+00:00"
+        try:
+            return datetime.fromisoformat(v)
+        except (ValueError, TypeError):
+            return None
+
 
 def validate_steps_list(steps: list[dict]) -> list[StepsRecord]:
     """Validate a list of step dicts, returning StepRecord objects or raising ValidationError."""
