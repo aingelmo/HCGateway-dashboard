@@ -10,7 +10,8 @@ version         = "0.1.0"
 dev = ["pytest>=8.4.1", "pytest-cov>=6.2.1", "ruff>=0.12.7"]
 
 [tool.ruff]
-exclude = ["tests/*", "docs/*"]
+exclude     = ["tests/*", "docs/*"]
+line-length = 120
 
-    [tool.ruff.lint]
-    select = ["ALL"]
+[tool.ruff.lint]
+select = ["ALL"]
