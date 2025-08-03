@@ -1,5 +1,7 @@
 """Main script for HCGateway login functionality."""
 
+import argparse
+import json
 import logging
 import os
 from datetime import UTC, datetime
@@ -121,6 +123,16 @@ def fetch_data(
 
 def main() -> None:
     """Entry point for the HCGateway login script."""
+    parser = argparse.ArgumentParser(description="Fetch data from HCGateway API.")
+    parser.add_argument("method", type=str, help="API method to fetch (e.g., steps)")
+    parser.add_argument(
+        "--query",
+        type=str,
+        default="{}",
+        help="MongoDB query as a JSON string (default: '{}')",
+    )
+    args = parser.parse_args()
+
     logger.info("Starting HCGateway login script.")
 
     hcg_username = os.getenv("HCGATEWAY_USERNAME")
@@ -134,12 +146,18 @@ def main() -> None:
     ensure_valid_token(hcg_username, hcg_password)
     logger.info("Current access token: %s", token_data["access_token"])
 
-    # Test fetch_data with the 'steps' method and an empty MongoDB query
     try:
-        result = fetch_data("steps", {}, hcg_username, hcg_password)
-        logger.info("Fetched data for 'steps': %s", result)
+        queries = json.loads(args.query)
+    except json.JSONDecodeError:
+        logger.exception("Invalid JSON for --query")
+        raise
+
+    try:
+        result = fetch_data(args.method, queries, hcg_username, hcg_password)
+        logger.info("Fetched data for '%s': %s", args.method, result)
+        logger.info("Fetched data output (JSON): %s", json.dumps(result, indent=2))
     except requests.RequestException:
-        logger.exception("Failed to fetch 'steps' data")
+        logger.exception("Failed to fetch '%s' data", args.method)
 
 
 if __name__ == "__main__":
