@@ -3,6 +3,7 @@
 Simplified for clarity and maintainability.
 """
 
+import logging
 import os
 from datetime import datetime
 
@@ -12,20 +13,32 @@ from dotenv import load_dotenv
 
 from data_extractor import fetch_data
 
+# --- Logging Config ---
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+)
+project_logger = logging.getLogger("hcgateway")
+project_logger.setLevel(logging.DEBUG)
+if not project_logger.hasHandlers():
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s"))
+    project_logger.addHandler(handler)
+logging.getLogger("streamlit").setLevel(logging.INFO)
+
 # --- App Config ---
 load_dotenv()
 st.set_page_config(page_title="HCGateway Steps Visualizer", layout="centered")
 st.title("HCGateway Steps Visualizer")
 
+# --- Constants ---
+DATE_RANGE_LENGTH = 2
 
 # --- Credential Handling ---
+
+
 def get_credentials() -> tuple[str, str, bool]:
-    """Get credentials from env or user input.
-
-    Returns:
-        tuple: (username, password, submitted)
-
-    """
+    """Get credentials from env or user input."""
     username = os.getenv("HCGATEWAY_USERNAME")
     password = os.getenv("HCGATEWAY_PASSWORD")
     if not username or not password:
@@ -76,13 +89,37 @@ if submitted:
     else:
         try:
             st.info("Attempting to fetch steps from API...")
-            data = fetch_data("steps", {}, hcg_username, hcg_password)
+            # Date range input with default value of last month
+            today = datetime.now().astimezone().date()
+            default_end = today
+            if today.month == 1:
+                default_start = today.replace(year=today.year - 1, month=12)
+            else:
+                default_start = today.replace(month=today.month - 1)
+            min_date = today.replace(year=today.year - 5)
+            date_range = st.date_input(
+                "Select date range",
+                value=(default_start, default_end),
+                min_value=min_date,
+                max_value=today,
+            )
+            if isinstance(date_range, tuple) and len(date_range) == DATE_RANGE_LENGTH:
+                start_date, end_date = date_range
+            else:
+                start_date = end_date = today
+            # Build date_query from slider
+            date_query = {
+                "end": {
+                    "$gte": start_date.strftime("%Y-%m-%dT00:00:00Z"),
+                    "$lte": end_date.strftime("%Y-%m-%dT23:59:59Z"),
+                },
+            }
+            data = fetch_data("steps", date_query, hcg_username, hcg_password)
             steps = data if isinstance(data, list) else []
             if not steps:
-                st.warning("No steps data found.")
+                st.warning("No steps data found. Check the query, credentials, and API connectivity.")
             else:
                 st.success("Steps data fetched successfully.")
-                st.write("Raw Data:", steps)
                 df = parse_steps(steps)
                 if df is not None:
                     st.line_chart(df.set_index("date")["count"])
