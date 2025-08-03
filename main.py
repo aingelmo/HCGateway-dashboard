@@ -1,59 +1,109 @@
+"""Main script for HCGateway login functionality."""
+
 import logging
 import os
+from datetime import UTC, datetime
 
 import requests
 from dotenv import load_dotenv
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
 
+token_data = {
+    "access_token": None,
+    "refresh_token": None,
+    "expiry": None,
+}
 
-def main():
-    logger.info("Starting HCGateway login script.")
+TOKEN_EXPIRY_MARGIN_SECONDS = 300  # 5 minutes
 
-    hcg_username = os.getenv("HCGATEWAY_USERNAME")
-    hcg_password = os.getenv("HCGATEWAY_PASSWORD")
 
-    if not hcg_username or not hcg_password:
-        logger.error(
-            "Missing HCGATEWAY_USERNAME or HCGATEWAY_PASSWORD environment variables."
-        )
-        raise ValueError(
-            "Missing HCGATEWAY_USERNAME or HCGATEWAY_PASSWORD environment variables."
-        )
-
+def get_access_token(hcg_username: str, hcg_password: str) -> dict:
+    """Authenticate and return the response JSON with tokens."""
     url = "https://api.hcgateway.shuchir.dev/api/v2/login"
     headers = {"Content-Type": "application/json"}
     data = {"username": hcg_username, "password": hcg_password}
-
     try:
-        logger.debug(f"Sending POST request to {url} with username {hcg_username}")
-        response = requests.post(url, headers=headers, json=data)
-        logger.info(f"Response status code: {response.status_code}")
+        logger.debug("Sending POST request to %s with username %s", url, hcg_username)
+        response = requests.post(url, headers=headers, json=data, timeout=10)
+        logger.info("Response status code: %s", response.status_code)
         response.raise_for_status()
-
         resp_json = response.json()
-        expires = resp_json.get("expiry")
-        access_token = resp_json.get("token")
-        refresh_token = resp_json.get("refresh")
-
-        logger.debug(f"Response JSON: {resp_json}")
-        logger.info(f"Token expires: {expires}")
-        logger.info(f"Access token: {access_token}")
-        logger.info(f"Refresh token: {refresh_token}")
-
-    except requests.RequestException as e:
-        logger.error(f"Request failed: {e}")
+        logger.debug("Response JSON: %s", resp_json)
+    except requests.RequestException:
+        logger.exception("Request failed")
         raise
-    except Exception as e:
-        logger.exception(f"Unexpected error: {e}")
+    else:
+        return resp_json
+
+
+def refresh_access_token(refresh_token: str) -> dict:
+    """Refresh and return a new access token using the refresh token."""
+    url = "https://api.hcgateway.shuchir.dev/api/v2/refresh"
+    headers = {"Content-Type": "application/json"}
+    data = {"refresh": refresh_token}
+    try:
+        logger.debug("Sending POST request to %s with refresh token", url)
+        response = requests.post(url, headers=headers, json=data, timeout=10)
+        logger.info("Refresh response status code: %s", response.status_code)
+        response.raise_for_status()
+        resp_json = response.json()
+        logger.debug("Refresh response JSON: %s", resp_json)
+    except requests.RequestException:
+        logger.exception("Refresh request failed")
         raise
+    else:
+        return resp_json
+
+
+def is_token_expired() -> bool:
+    """Check if the current token is expired or about to expire (within 5 minutes)."""
+    expiry = token_data.get("expiry")
+    if not expiry:
+        return True
+    now = datetime.now(UTC)
+    # Refresh if less than 5 minutes left
+    return (expiry - now).total_seconds() < TOKEN_EXPIRY_MARGIN_SECONDS
+
+
+def ensure_valid_token(hcg_username: str, hcg_password: str) -> None:
+    """Ensure a valid access token is available, refreshing if needed."""
+    if not token_data["access_token"] or is_token_expired():
+        if token_data["refresh_token"]:
+            resp = refresh_access_token(token_data["refresh_token"])
+        else:
+            resp = get_access_token(hcg_username, hcg_password)
+        token_data["access_token"] = resp.get("token")
+        token_data["refresh_token"] = resp.get("refresh")
+        expiry_str = resp.get("expiry")
+        if expiry_str:
+            token_data["expiry"] = datetime.fromisoformat(expiry_str).astimezone(UTC)
+        else:
+            token_data["expiry"] = None
+
+
+def main() -> None:
+    """Entry point for the HCGateway login script."""
+    logger.info("Starting HCGateway login script.")
+
+    hcg_username = os.getenv("HCGATEWAY_USERNAME")
+    hcg_password = os.getenv("HCGATEGAY_PASSWORD")
+
+    if not hcg_username or not hcg_password:
+        msg = "Missing HCGATEWAY_USERNAME or HCGATEWAY_PASSWORD environment variables."
+        logger.error(msg)
+        raise OSError(msg)
+
+    ensure_valid_token(hcg_username, hcg_password)
+    logger.info("Current access token: %s", token_data["access_token"])
 
 
 if __name__ == "__main__":
