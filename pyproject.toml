@@ -1,8 +1,5 @@
 [project]
-dependencies    = [
-    "dotenv>=0.9.9",
-    "requests>=2.32.4",
-]
+dependencies    = ["dotenv>=0.9.9", "requests>=2.32.4"]
 description     = "Dashboard for HCGateway data"
 name            = "hcgateway-dashboard"
 readme          = "README.md"
@@ -10,6 +7,7 @@ requires-python = ">=3.13"
 version         = "0.1.0"
 
 [dependency-groups]
-dev = [
-    "ruff>=0.12.7",
-]
+dev = ["ruff>=0.12.7"]
+
+[tool.ruff.lint]
+select = ["ALL"]
