@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+import sys
 from datetime import UTC, datetime
 
 import requests
@@ -11,15 +12,14 @@ from dotenv import load_dotenv
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
-# Load environment variables from .env file
 load_dotenv()
 
-token_data = {
+token_data: dict[str, str | None] = {
     "access_token": None,
     "refresh_token": None,
     "expiry": None,
@@ -77,7 +77,6 @@ def ensure_valid_token(hcg_username: str, hcg_password: str) -> None:
         token_data["refresh_token"] = resp.get("refresh")
         expiry_str = resp.get("expiry")
         if expiry_str:
-            # Store expiry as ISO string for type consistency
             token_data["expiry"] = expiry_str
         else:
             token_data["expiry"] = None
@@ -133,6 +132,10 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    if not args.method:
+        sys.stderr.write("Error: method argument is required.\n")
+        sys.exit(1)
+
     logger.info("Starting HCGateway login script.")
 
     hcg_username = os.getenv("HCGATEWAY_USERNAME")
@@ -141,23 +144,28 @@ def main() -> None:
     if not hcg_username or not hcg_password:
         msg = "Missing HCGATEWAY_USERNAME or HCGATEWAY_PASSWORD environment variables."
         logger.error(msg)
-        raise OSError(msg)
+        sys.stderr.write(msg + "\n")
+        sys.exit(1)
 
     ensure_valid_token(hcg_username, hcg_password)
-    logger.info("Current access token: %s", token_data["access_token"])
+    logger.info("Current access token: [REDACTED]")
 
     try:
         queries = json.loads(args.query)
     except json.JSONDecodeError:
         logger.exception("Invalid JSON for --query")
-        raise
+        sys.stderr.write("Invalid JSON for --query.\n")
+        sys.exit(1)
 
     try:
         result = fetch_data(args.method, queries, hcg_username, hcg_password)
-        logger.info("Fetched data for '%s': %s", args.method, result)
+        logger.info("Fetched data for '%s'", args.method)
         logger.info("Fetched data output (JSON): %s", json.dumps(result, indent=2))
+        sys.stdout.write(json.dumps(result, indent=2) + "\n")
     except requests.RequestException:
         logger.exception("Failed to fetch '%s' data", args.method)
+        sys.stderr.write(f"Failed to fetch '{args.method}' data.\n")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
