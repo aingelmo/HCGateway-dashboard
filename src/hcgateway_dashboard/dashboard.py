@@ -1,7 +1,7 @@
 """Dashboard components for HCGateway steps visualization."""
 
 import datetime
-from typing import Any
+from typing import Any, cast
 
 import pandas as pd
 import streamlit as st
@@ -45,8 +45,14 @@ class Dashboard:
             min_value=min_date,
             max_value=today,
         )
-        if isinstance(date_range, tuple) and len(date_range) == DATE_RANGE_LENGTH:
-            return date_range
+        if (
+            isinstance(date_range, tuple)
+            and len(date_range) == DATE_RANGE_LENGTH
+            and all(isinstance(d, datetime.date) for d in date_range)
+        ):
+            # Use cast to tell MyPy we have exactly tuple[date, date]
+            date_tuple = cast("tuple[datetime.date, datetime.date]", date_range)
+            return date_tuple[0], date_tuple[1]
         return today, today
 
     def parse_steps(self, steps: list[dict[str, Any]]) -> pd.DataFrame | None:
@@ -83,16 +89,19 @@ class Dashboard:
         }
 
         try:
-            data = self.client.fetch_data("steps", date_query, username, password)
+            response = self.client.fetch_data("steps", date_query, username, password)
+            # Extract the actual data from the response
+            data = response.get("data", []) if isinstance(response, dict) else []
             if not isinstance(data, list):
                 return []
 
             # Validate step data before returning
             validate_steps_list(data)
-            return data
         except (ValueError, TypeError) as e:
             st.error(f"Step data validation failed: {e}")
             return []
+        else:
+            return data
 
     def visualize_steps(
         self,
@@ -110,10 +119,10 @@ class Dashboard:
                 return
 
             st.success("Steps data fetched successfully.")
-            df = self.parse_steps(steps)
-            if df is not None:
-                st.line_chart(df.set_index("date")["count"])
-                st.dataframe(df)
+            steps_dataframe = self.parse_steps(steps)
+            if steps_dataframe is not None:
+                st.line_chart(steps_dataframe.set_index("date")["count"])
+                st.dataframe(steps_dataframe)
             else:
                 st.warning("No valid step records to display.")
         except (KeyError, ValueError, TypeError) as e:

@@ -1,17 +1,18 @@
 """Pydantic models for validating HCGateway steps data."""
 
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
 
-class StepsData(BaseModel):
+class StepsData(BaseModel):  # type: ignore[misc]
     """Model for the 'data' field in a step record."""
 
     count: int = Field(..., ge=0, description="Step count, must be non-negative")
 
 
-class StepsRecord(BaseModel):
+class StepsRecord(BaseModel):  # type: ignore[misc]
     """Model for a single step record from the HCGateway API."""
 
     _id: str
@@ -21,7 +22,7 @@ class StepsRecord(BaseModel):
     id: str
     start: str
 
-    @field_validator("end", "start")
+    @field_validator("end", "start")  # type: ignore[misc]
     @classmethod
     def validate_datetime(cls, v: str) -> str:
         """Validate that the datetime string is in ISO 8601 format (with or without Z)."""
@@ -59,6 +60,6 @@ class StepsRecord(BaseModel):
             return None
 
 
-def validate_steps_list(steps: list[dict]) -> list[StepsRecord]:
+def validate_steps_list(steps: list[dict[str, Any]]) -> list[StepsRecord]:
     """Validate a list of step dicts, returning StepRecord objects or raising ValidationError."""
     return [StepsRecord.model_validate(item) for item in steps]

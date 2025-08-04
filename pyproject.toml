@@ -40,6 +40,8 @@ dev = [
     "bandit>=1.8.6",
     "detect-secrets>=1.5.0",
     "httpx>=0.28.1",
+    "pandas-stubs>=2.3.0.250703",
+    "types-requests>=2.32.4.20250611",
 ]
 test = ["pytest>=8.4.1", "pytest-mock>=3.14.1", "httpx>=0.28.1"]
 
@@ -146,15 +148,21 @@ line-ending  = "auto"
 quote-style  = "double"
 
 [tool.mypy]
-files            = ["src", "tests"]
-python_version   = "3.13"
-show_error_codes = true
-strict           = true
-warn_unreachable = true
+files                   = ["src", "tests"]
+python_version          = "3.13"
+show_error_codes        = true
+strict                  = true
+warn_unreachable        = true
+ignore_missing_imports  = true
 
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
-module                 = "streamlit.*"
+module                 = [
+    "streamlit.*",
+    "pydantic.*",
+    "dotenv.*",
+    "pandas.*"
+]
 
 [tool.pytest.ini_options]
 addopts = [

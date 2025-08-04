@@ -2,7 +2,7 @@
 
 import logging
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, cast
 
 import requests
 
@@ -71,12 +71,13 @@ class HCGatewayClient:
             response = requests.post(url, headers=headers, json=data, timeout=self.REQUEST_TIMEOUT)
             logger.info("Response status code: %s", response.status_code)
             response.raise_for_status()
-            resp_json = response.json()
-            logger.debug("Response JSON: %s", resp_json)
-            return resp_json
         except requests.RequestException:
             logger.exception("Authentication request failed")
             raise
+        else:
+            resp_json = cast("dict[str, Any]", response.json())
+            logger.debug("Response JSON: %s", resp_json)
+            return resp_json
 
     def _refresh_access_token(self, refresh_token: str) -> dict[str, Any]:
         """Refresh and return a new access token using the refresh token."""
@@ -89,12 +90,13 @@ class HCGatewayClient:
             response = requests.post(url, headers=headers, json=data, timeout=self.REQUEST_TIMEOUT)
             logger.info("Refresh response status code: %s", response.status_code)
             response.raise_for_status()
-            resp_json = response.json()
-            logger.debug("Refresh response JSON: %s", resp_json)
-            return resp_json
         except requests.RequestException:
             logger.exception("Token refresh request failed")
             raise
+        else:
+            resp_json = cast("dict[str, Any]", response.json())
+            logger.debug("Refresh response JSON: %s", resp_json)
+            return resp_json
 
     def _ensure_valid_token(self, username: str, password: str) -> None:
         """Ensure a valid access token is available, refreshing if needed."""
@@ -103,9 +105,10 @@ class HCGatewayClient:
                 try:
                     resp = self._refresh_access_token(self._token_manager.refresh_token)
                     self._token_manager.update_tokens(resp)
-                    return
                 except requests.RequestException:
                     logger.warning("Token refresh failed, attempting full authentication")
+                else:
+                    return
 
             resp = self._get_access_token(username, password)
             self._token_manager.update_tokens(resp)
@@ -132,9 +135,10 @@ class HCGatewayClient:
             response = requests.post(url, headers=headers, json=data, timeout=self.REQUEST_TIMEOUT)
             logger.info("Fetch response status code: %s", response.status_code)
             response.raise_for_status()
-            resp_json = response.json()
-            logger.debug("Fetch response JSON: %s", resp_json)
-            return resp_json
         except requests.RequestException:
             logger.exception("Data fetch request failed")
             raise
+        else:
+            resp_json = cast("dict[str, Any]", response.json())
+            logger.debug("Fetch response JSON: %s", resp_json)
+            return resp_json
