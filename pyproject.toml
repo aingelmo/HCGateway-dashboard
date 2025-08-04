@@ -1,22 +1,115 @@
-[project]
-dependencies    = [
-    "dotenv>=0.9.9",
- "pydantic>=2.11.7",
- "requests>=2.32.4",
- "streamlit>=1.47.1",
-]
-description     = "Dashboard for HCGateway data"
-name            = "hcgateway-dashboard"
-readme          = "README.md"
-requires-python = ">=3.13"
-version         = "0.1.0"
+[build-system]
+build-backend = "setuptools.build_meta"
+requires      = ["setuptools>=61.0", "wheel"]
 
-[dependency-groups]
-dev = ["pytest>=8.4.1", "pytest-cov>=6.2.1", "ruff>=0.12.7"]
+[project]
+authors = [{ name = "Andres Ingelmo", email = "aingelmo@gmail.com" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: Streamlit",
+    "Intended Audience :: Home Users",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+description = "A Streamlit dashboard for visualising HCGateway data"
+keywords = ["streamlit", "dashboard", "health", "visualization"]
+name = "hcgateway-dashboard"
+readme = "README.md"
+requires-python = ">=3.13"
+version = "0.1.0"
+
+dependencies = [
+    "streamlit>=1.47.1",
+    "requests>=2.32.4",
+    "pydantic>=2.11.7",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+    "ruff>=0.12.7",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+]
+test = ["pytest>=8.4.1", "pytest-mock>=3.10.0", "httpx>=0.24.0"]
+
+[project.urls]
+Documentation = "https://github.com/aingelmo/HCGateway-dashboard#readme"
+Homepage      = "https://github.com/aingelmo/HCGateway-dashboard"
+Issues        = "https://github.com/aingelmo/HCGateway-dashboard/issues"
+Repository    = "https://github.com/aingelmo/HCGateway-dashboard.git"
+
+[project.scripts]
+hcgateway-dashboard = "hcgateway_dashboard.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
 
 [tool.ruff]
-exclude     = ["tests/*", "docs/*"]
-line-length = 120
+line-length    = 120
+src            = ["src", "tests"]
+target-version = "py313"
 
 [tool.ruff.lint]
 select = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/*"     = ["ARG", "S101", "PLR2004"]
+
+[tool.ruff.lint.isort]
+force-single-line   = false
+known-first-party   = ["hcgateway_dashboard"]
+lines-after-imports = 2
+
+[tool.mypy]
+files            = ["src", "tests"]
+python_version   = "3.13"
+show_error_codes = true
+strict           = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module                 = "streamlit.*"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=hcgateway_dashboard",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-fail-under=80",
+]
+python_classes = ["Test*"]
+python_files = ["test_*.py", "*_test.py"]
+python_functions = ["test_*"]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+omit   = ["*/tests/*", "*/test_*.py"]
+source = ["src"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "pass",
+]
