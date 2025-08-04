@@ -62,11 +62,18 @@ class Dashboard:
             return date_tuple[0], date_tuple[1]
         return today, today
 
-    def parse_steps(self, steps: list[dict[str, Any]]) -> pd.DataFrame | None:
-        """Convert raw steps list to DataFrame with date, count, and source."""
+    @st.cache_data(ttl=300, show_spinner=False)
+    def parse_steps(_self, steps: list[dict[str, Any]]) -> pd.DataFrame | None:  # noqa: N805
+        """Convert raw steps list to DataFrame with date, count, and source.
+
+        Cached for 5 minutes to avoid reprocessing the same data.
+        """
+        logger.info("Parsing %d step records into DataFrame", len(steps))
+
         try:
             validated = validate_steps_list(steps)
         except (ValueError, TypeError) as e:
+            logger.exception("Step data validation failed during parsing")
             st.error(f"Step data validation failed: {e}")
             return None
 
@@ -78,16 +85,24 @@ class Dashboard:
             source = entry.app or "unknown"
             if date_fmt and count is not None:
                 records.append({"date": date_fmt, "count": count, "source": source})
+
+        logger.info("Successfully parsed %d valid records", len(records))
         return pd.DataFrame(records) if records else None
 
+    @st.cache_data(ttl=300, show_spinner=False)
     def fetch_steps_for_range(
-        self,
+        _self,  # noqa: N805
         username: str,
         password: str,
         start_date: datetime.date,
         end_date: datetime.date,
     ) -> list[dict[str, Any]]:
-        """Fetch steps data from API for the given date range."""
+        """Fetch steps data from API for the given date range.
+
+        Cached for 5 minutes to avoid API overload.
+        """
+        logger.info("Fetching steps data for range %s to %s", start_date, end_date)
+
         date_query = {
             "end": {
                 "$gte": start_date.strftime("%Y-%m-%dT00:00:00Z"),
@@ -96,13 +111,16 @@ class Dashboard:
         }
 
         try:
-            response = self.client.fetch_data("steps", date_query, username, password)
+            response = _self.client.fetch_data("steps", date_query, username, password)
             data = response
             if not isinstance(data, list):
+                logger.warning("API response is not a list, returning empty data")
                 return []
 
             validate_steps_list(data)
+            logger.info("Successfully fetched %d step records", len(data))
         except (ValueError, TypeError) as e:
+            logger.exception("Step data validation failed")
             st.error(f"Step data validation failed: {e}")
             return []
         else:
@@ -116,10 +134,13 @@ class Dashboard:
         end_date: datetime.date,
     ) -> None:
         """Visualize steps data."""
+        logger.info("Starting visualization for date range %s to %s", start_date, end_date)
+
         try:
             st.info("Attempting to fetch steps from API...")
             steps = self.fetch_steps_for_range(username, password, start_date, end_date)
             if not steps:
+                logger.warning("No steps data found for the specified date range")
                 st.warning(
                     "No steps data found. Check the query, credentials, and API connectivity.",
                 )
@@ -128,27 +149,36 @@ class Dashboard:
             st.success("Steps data fetched successfully.")
             steps_dataframe = self.parse_steps(steps)
             if steps_dataframe is not None:
+                logger.info("Displaying chart and dataframe with %d records", len(steps_dataframe))
                 st.line_chart(steps_dataframe.set_index("date")["count"])
                 st.dataframe(steps_dataframe)
             else:
+                logger.warning("No valid step records to display after parsing")
                 st.warning("No valid step records to display.")
         except (KeyError, ValueError, TypeError) as e:
+            logger.exception("Failed to fetch steps")
             st.error(f"Failed to fetch steps: {e}")
         except RuntimeError:
+            logger.exception("Runtime error occurred during visualization")
             st.error("A runtime error occurred. Please try again later.")
             st.stop()
 
     def run(self) -> None:
         """Run the Streamlit HCGateway Steps Visualizer app."""
+        logger.info("Starting HCGateway Steps Visualizer dashboard")
+
         st.set_page_config(page_title="HCGateway Steps Visualizer", layout="centered")
         st.title("HCGateway Steps Visualizer")
 
         hcg_username, hcg_password, submitted = self.get_credentials()
         if not submitted:
+            logger.debug("Waiting for user credentials submission")
             return
         if not hcg_username or not hcg_password:
+            logger.warning("Missing credentials - username or password not provided")
             st.error("Please enter both username and password.")
             return
 
         start_date, end_date = self.get_date_range()
+        logger.info("User selected date range: %s to %s", start_date, end_date)
         self.visualize_steps(hcg_username, hcg_password, start_date, end_date)
