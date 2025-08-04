@@ -46,9 +46,6 @@ Homepage      = "https://github.com/aingelmo/HCGateway-dashboard"
 Issues        = "https://github.com/aingelmo/HCGateway-dashboard/issues"
 Repository    = "https://github.com/aingelmo/HCGateway-dashboard.git"
 
-[project.scripts]
-hcgateway-dashboard = "hcgateway_dashboard.__main__:main"
-
 [tool.setuptools.packages.find]
 where = ["src"]
 

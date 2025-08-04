@@ -51,7 +51,7 @@ cp .env.example .env
 # Edit .env with your HCGateway credentials
 
 # Run the application
-hcgateway-dashboard
+uv run streamlit run app.py
 ```
 
 ### Option 2: Docker
@@ -69,11 +69,26 @@ docker-compose up --build
 
 ## 🚀 Usage
 
-1. **Configure**: Set `HCGATEWAY_USERNAME` and `HCGATEWAY_PASSWORD` in `.env`
-2. **Launch**: Run `hcgateway-dashboard` or `docker-compose up`
-3. **Authenticate**: Credentials auto-loaded from environment
-4. **Select Dates**: Choose your analysis period (defaults to last month)
-5. **Explore**: View interactive charts and data tables
+### Simple Streamlit Execution
+
+```bash
+# Run the application (recommended):
+uv run streamlit run app.py
+```
+
+## 🔧 Configuration Steps
+
+1. **Install**: `make install` or `uv sync --dev`
+2. **Configure**: Copy `.env.example` to `.env` and set your credentials
+3. **Launch**: Run `uv run streamlit run app.py`
+4. **Access**: Open your browser to the displayed URL (typically <http://localhost:8501>)
+
+The application will:
+
+- Auto-load credentials from environment variables
+- Show a login form if credentials are missing
+- Default to last month's date range
+- Display interactive charts and data tables
 
 ## 📊 Features
 
