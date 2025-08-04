@@ -1,14 +1,21 @@
 """Dashboard components for HCGateway steps visualization."""
 
 import datetime
+import logging
 from typing import Any, cast
 
 import pandas as pd
 import streamlit as st
 
 from hcgateway_dashboard.api_client import HCGatewayClient
-from hcgateway_dashboard.config import DATE_RANGE_LENGTH, HCGATEWAY_PASSWORD, HCGATEWAY_USERNAME
+from hcgateway_dashboard.config import (
+    DATE_RANGE_LENGTH,
+    HCGATEWAY_PASSWORD,
+    HCGATEWAY_USERNAME,
+)
 from hcgateway_dashboard.models.steps import validate_steps_list
+
+logger = logging.getLogger("hcgateway.dashboard_client")
 
 
 class Dashboard:
@@ -90,12 +97,10 @@ class Dashboard:
 
         try:
             response = self.client.fetch_data("steps", date_query, username, password)
-            # Extract the actual data from the response
-            data = response.get("data", []) if isinstance(response, dict) else []
+            data = response
             if not isinstance(data, list):
                 return []
 
-            # Validate step data before returning
             validate_steps_list(data)
         except (ValueError, TypeError) as e:
             st.error(f"Step data validation failed: {e}")
