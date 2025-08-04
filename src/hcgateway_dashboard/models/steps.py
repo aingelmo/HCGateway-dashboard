@@ -6,13 +6,13 @@ from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 
-class StepsData(BaseModel):  # type: ignore[misc]
+class StepsData(BaseModel):
     """Model for the 'data' field in a step record."""
 
     count: int = Field(..., ge=0, description="Step count, must be non-negative")
 
 
-class StepsRecord(BaseModel):  # type: ignore[misc]
+class StepsRecord(BaseModel):
     """Model for a single step record from the HCGateway API."""
 
     _id: str
@@ -22,7 +22,7 @@ class StepsRecord(BaseModel):  # type: ignore[misc]
     id: str
     start: str
 
-    @field_validator("end", "start")  # type: ignore[misc]
+    @field_validator("end", "start")
     @classmethod
     def validate_datetime(cls, v: str) -> str:
         """Validate that the datetime string is in ISO 8601 format (with or without Z)."""

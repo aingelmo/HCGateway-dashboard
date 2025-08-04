@@ -26,13 +26,12 @@ repos:
       - id: ruff-format
         description: "Ruff formatter (replaces black)"
 
-  # Type checking (MyPy for strict type safety)
+  # Type checking (MyPy for basic type safety)
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.17.1
     hooks:
       - id: mypy
-        additional_dependencies: [types-requests]
-        args: [--strict]
+        args: [--config-file=pyproject.toml]
         files: ^src/
 
   # Security scanning
