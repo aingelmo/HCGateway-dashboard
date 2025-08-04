@@ -1,0 +1,59 @@
+# Ruff-Optimized Pre-commit Configuration
+# Leverages Ruff for maximum performance and minimal tool overlap
+
+repos:
+  # Essential file hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+
+  # Ruff: All-in-one Python tool (replaces flake8, isort, black, pydocstyle, etc.)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.7
+    hooks:
+      - id: ruff
+        description: "Ruff linter (replaces flake8, isort, pydocstyle, etc.)"
+        args: [--fix]
+      - id: ruff-format
+        description: "Ruff formatter (replaces black)"
+
+  # Type checking (MyPy for strict type safety)
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.17.1
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-requests]
+        args: [--strict]
+        files: ^src/
+
+  # Security scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: ["-c", "pyproject.toml"]
+        additional_dependencies: ["bandit[toml]"]
+        exclude: "tests/"
+
+  # Secrets detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+
+# Global configuration
+default_language_version:
+  python: python3.13
+
+fail_fast: false  # Show all issues at once for efficiency
+default_stages: [pre-commit]
