@@ -84,7 +84,7 @@ class TestHCGatewayClient:
         # Check the request was made correctly
         call_args = mock_post.call_args
         assert call_args[1]["json"]["username"] == "test_user"
-        assert call_args[1]["json"]["password"] == "test_pass"
+        assert call_args[1]["json"]["password"] == "test_pass"  # pragma: allowlist secret
 
     @patch("hcgateway_dashboard.api_client.requests.post")
     def test_get_access_token_failure(self, mock_post: MagicMock) -> None:
@@ -233,7 +233,7 @@ class TestIntegration:
             [
                 pytest.importorskip("os").getenv("TEST_HCGATEWAY_USERNAME"),
                 pytest.importorskip("os").getenv("TEST_HCGATEWAY_PASSWORD"),
-            ]
+            ],
         ),
         reason="Integration test credentials not provided",
     )
