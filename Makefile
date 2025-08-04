@@ -9,7 +9,7 @@ help: ## Show available commands
 
 install: ## Install dependencies
 	@echo "🔧 Installing dependencies..."
-	uv sync
+	uv sync --all-extras
 	@echo "✅ Installation complete"
 
 format: ## Format and fix code issues
@@ -35,6 +35,9 @@ clean: ## Clean generated files
 	find . -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	@echo "✅ Cleaned"
 
-# Simple quality check for beta
 check: format lint test ## Run basic quality checks
 	@echo "✅ Quality checks passed!"
+
+run: ## Run the application via uv
+	@echo "🚀 Starting HCGateway Dashboard..."
+	uv run streamlit run app.py
