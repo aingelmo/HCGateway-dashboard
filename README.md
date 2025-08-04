@@ -1,81 +1,63 @@
 # HCGateway Dashboard
 
-A modern, enterprise-grade Streamlit dashboard for visualizing HCGateway steps data with **Ruff-optimized quality control** and Docker deployment.
+A modern Streamlit dashboard for visualizing HCGateway steps data with enterprise-grade quality control and secure authentication.
 
 ## 🏗️ Architecture
 
-Clean, scalable Python package structure:
+Clean, production-ready Python package structure:
 
-```
+```text
 src/hcgateway_dashboard/
-├── __init__.py          # Package initialization
+├── __init__.py          # Package initialization and exports
 ├── __main__.py          # CLI entry point
 ├── api_client.py        # HCGateway API client with token management
-├── config.py            # Configuration management
+├── config.py            # Configuration and environment management
 ├── dashboard.py         # Streamlit dashboard interface
 └── models/              # Pydantic data models
-    ├── __init__.py
-    └── steps.py         # Steps data validation
+    ├── __init__.py      # Model exports
+    └── steps.py         # Steps data validation and schemas
 ```
 
-## ⚡ Ruff-Powered Quality Control
+## ⚡ Quality Control with Ruff
 
-This project leverages **Ruff** as the primary tool for code quality, replacing multiple tools:
+Lightning-fast code quality powered by **Ruff**:
 
-- **Ruff Format** → replaces Black
-- **Ruff Lint** → replaces flake8, isort, pydocstyle, bandit (partially)
-- **MyPy** → type checking
-- **Bandit** → security scanning
-- **Pre-commit hooks** → automatic quality gates
+- **Format** → Automatic code formatting
+- **Lint** → Comprehensive linting (50+ rule categories)
+- **Pre-commit** → Automatic quality gates on every commit
 
-### 🚀 Quick Quality Commands
+### 🚀 Essential Commands
 
 ```bash
-# Format and fix code (primary workflow)
-make format
-
-# Check code quality
-make lint
-
-# Run complete quality gate
-make quality-gate
-
-# Show all commands
-make help
+make format     # Format and fix code issues
+make lint       # Check code quality
+make test       # Run tests with coverage
+make install    # Install dependencies
+make help       # Show all commands
 ```
 
-## 🔧 Installation & Setup
+## 🔧 Quick Start
 
-### Option 1: Development Setup (Recommended)
+### Option 1: Local Development
 
 ```bash
 # Clone and setup
 git clone https://github.com/aingelmo/HCGateway-dashboard.git
 cd HCGateway-dashboard
-
-# Install everything (dependencies + pre-commit hooks)
 make install
 
+# Configure credentials
+cp .env.example .env
+# Edit .env with your HCGateway credentials
+
 # Run the application
-uv run hcgateway-dashboard
-# or
-hcgateway-dashboard  # if installed globally
-```
-
-### Option 2: Package Installation Only
-
-```bash
-# Install as package
-pip install -e .
-
-# Run
 hcgateway-dashboard
 ```
 
-### Option 3: Docker Deployment
+### Option 2: Docker
 
 ```bash
-# Create environment file
+# Setup environment
 cp .env.example .env
 # Edit .env with your credentials
 
@@ -85,75 +67,65 @@ docker-compose up --build
 # Access: http://localhost:8501
 ```
 
-## 🛡️ Quality Control System
+## 🚀 Usage
 
-### Pre-commit Hooks (Automatic)
+1. **Configure**: Set `HCGATEWAY_USERNAME` and `HCGATEWAY_PASSWORD` in `.env`
+2. **Launch**: Run `hcgateway-dashboard` or `docker-compose up`
+3. **Authenticate**: Credentials auto-loaded from environment
+4. **Select Dates**: Choose your analysis period (defaults to last month)
+5. **Explore**: View interactive charts and data tables
 
-Every `git commit` automatically runs:
+## 📊 Features
 
-1. **File hygiene** - trailing whitespace, file endings
-2. **Ruff format** - code formatting
-3. **Ruff lint** - comprehensive linting
-4. **MyPy** - type checking (src/ only)
-5. **Bandit** - security scanning
-6. **Detect-secrets** - credential leak prevention
+### Security & Authentication
 
-### Manual Quality Control
+- 🔐 **JWT Token Management** with automatic refresh
+- 🛡️ **Secure API Communication** via HTTPS
+- 🔒 **Environment-based Secrets** (no hardcoded credentials)
+- ✅ **Input Validation** with Pydantic models
 
-```bash
-# Essential workflow
-make format     # Auto-fix formatting and style issues
-make lint       # Check remaining issues
-make test       # Run test suite
-make security   # Security scan
+### Data & Visualization
 
-# Complete pipeline
-make quality-gate  # Run everything
+- 📊 **Interactive Charts** with Streamlit
+- 📈 **Multi-source Tracking** (multiple apps/devices)
+- 📅 **Flexible Date Ranges** (up to 5 years history)
+- 🔄 **Real-time Validation** and error handling
 
-# Development helpers
-make clean      # Clean generated files
-make dev        # Setup development environment
-```
+### Developer Experience
 
-### Ruff Configuration Highlights
-
-**Comprehensive rule coverage:**
-
-- Code style (pycodestyle)
-- Import sorting (isort)
-- Documentation (pydocstyle)
-- Security basics (bandit subset)
-- Complexity (mccabe)
-- Best practices (bugbear)
-- Modern Python (pyupgrade)
-
-**Smart ignores for different contexts:**
-
-- Tests: Allow asserts, magic values, private access
-- Init files: Allow unused imports
-- App entry: Allow print statements
-
-## 📦 Features
-
-- 🔐 **Secure Authentication** with token refresh
-- 📊 **Data Validation** using Pydantic models
-- 🎨 **Interactive UI** with Streamlit
-- 🐳 **Docker Ready** with multi-stage builds
+- ⚡ **Lightning-fast Quality Control** with Ruff
+- 🧪 **Comprehensive Testing** with pytest
+- 🐳 **Docker Ready** for production deployment
 - 📝 **Structured Logging** with configurable levels
-- 🧪 **Comprehensive Tests** with pytest
-- 🔧 **Full Type Safety** with strict MyPy
-- ⚡ **Lightning-fast Quality** with Ruff
-- 🛡️ **Security Scanning** with Bandit + detect-secrets
 
 ## 🔧 Configuration
 
 Configure via environment variables or `.env` file:
 
-| Variable             | Description                | Default    |
-| -------------------- | -------------------------- | ---------- |
-| `HCGATEWAY_USERNAME` | API username               | _Required_ |
-| `HCGATEWAY_PASSWORD` | API password               | _Required_ |
-| `LOGGING_LEVEL`      | Log level (DEBUG/INFO/etc) | `INFO`     |
+| Variable             | Description                | Default | Required |
+| -------------------- | -------------------------- | ------- | -------- |
+| `HCGATEWAY_USERNAME` | HCGateway API username     | -       | Yes      |
+| `HCGATEWAY_PASSWORD` | HCGateway API password     | -       | Yes      |
+| `LOGGING_LEVEL`      | Log level (DEBUG/INFO/etc) | `INFO`  | No       |
+
+## 🛠️ Development
+
+### Quality Control Workflow
+
+```bash
+# Essential development cycle
+make format     # Auto-fix formatting and style issues
+make lint       # Check remaining code quality issues
+make test       # Run test suite with coverage
+```
+
+### Pre-commit Hooks
+
+Automatic quality gates on every commit:
+
+1. **File hygiene** - trailing whitespace, file endings
+2. **Ruff format** - code formatting
+3. **Ruff lint** - comprehensive linting with auto-fix
 
 ## 🧪 Testing
 
@@ -161,340 +133,119 @@ Configure via environment variables or `.env` file:
 # Run all tests
 make test
 
-# Run with coverage details
-uv run pytest --cov=hcgateway_dashboard --cov-report=html
-
 # Run specific tests
 uv run pytest tests/test_api_client.py -v
+
+# Generate HTML coverage report
+uv run pytest --cov=hcgateway_dashboard --cov-report=html
 ```
 
-## � Docker
+## 🐳 Docker
 
-### Production Container
+### Production Deployment
 
 ```bash
-# Multi-stage optimized build
-docker build -t hcgateway-dashboard .
-docker run -p 8501:8501 --env-file .env hcgateway-dashboard
+# Build and run
+docker-compose up --build
+
+# Health check
+curl http://localhost:8501/_stcore/health
 ```
 
-### Development Container
+### Features
 
-```bash
-# With hot reload and dev tools
-docker-compose --profile dev up --build
-# Access: http://localhost:8502
-```
+- **Lightweight**: Based on `python:3.13-slim`
+- **Security**: Non-root container execution
+- **Performance**: Multi-stage builds with dependency caching
+- **Environment**: Full `.env` file support
 
-## 🔄 CI/CD Integration
+## 🏛️ Technical Architecture
 
-Optimized for modern CI/CD pipelines:
+### Core Components
 
-```yaml
-# GitHub Actions example
-name: Quality Gate
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v1
-      - run: make ci
-```
+- **TokenManager**: JWT lifecycle management with automatic refresh
+- **HCGatewayClient**: RESTful API client with robust error handling
+- **Dashboard**: Streamlit interface with Pydantic validation
+- **Models**: Data validation schemas for steps records
 
-The `make ci` command runs:
+### API Integration
 
-- Format checking (no changes)
-- Ruff linting
-- Type checking
-- Test suite with coverage
-
-## � Usage
-
-1. **Start the app**: `hcgateway-dashboard` or `docker-compose up`
-2. **Authenticate**: Enter credentials or set environment variables
-3. **Select dates**: Choose your analysis period
-4. **Explore data**: Interactive charts and tables
-
-## 🏢 Production Features
-
-### Security
-
-- Non-root container execution
-- Environment-based secrets
-- Token-based authentication with refresh
-- Input validation via Pydantic
-- Security vulnerability scanning
-
-### Performance
-
-- Multi-stage Docker builds
-- Efficient dependency caching
-- Minimal base image (python:3.13-slim)
-- Lightning-fast quality checks with Ruff
-
-### Monitoring
-
-- Structured logging with correlation IDs
-- Health check endpoints
-- Comprehensive error handling
-- Performance-ready metrics
-
-## 🤝 Development Workflow
-
-```bash
-# 1. Setup (once)
-make install
-
-# 2. Development cycle
-make format     # Auto-fix issues
-make lint       # Check remaining issues
-make test       # Verify functionality
-
-# 3. Before commit
-make quality-gate  # Final validation
-
-# 4. Commit (hooks run automatically)
-git add .
-git commit -m "feat: add awesome feature"
-```
+- **Base URL**: `https://api.hcgateway.shuchir.dev/api/v2`
+- **Authentication**: JWT Bearer tokens with refresh capability
+- **Endpoints**: `/login`, `/refresh`, `/fetch/steps`
+- **Queries**: MongoDB-style date range queries
+- **Validation**: Comprehensive Pydantic model validation
 
 ## 🎯 Quality Standards
 
-This project follows **perfection-driven development**:
+Enterprise-grade quality following perfection-driven development:
 
-- ✅ **Zero tolerance** for security vulnerabilities
-- ✅ **Strict type checking** on all source code
-- ✅ **Comprehensive linting** with 50+ rule categories
+- ✅ **Zero tolerance** for code quality issues
+- ✅ **Strict type checking** with MyPy compatibility
+- ✅ **Comprehensive linting** (50+ Ruff rule categories)
 - ✅ **Automatic formatting** for consistency
-- ✅ **High test coverage** (80%+ required)
-- ✅ **Documentation standards** enforced
+- ✅ **Test coverage** enforcement
 - ✅ **Pre-commit validation** prevents bad commits
+- ✅ **Security scanning** with built-in rules
 
 ## 🆘 Troubleshooting
 
-### Pre-commit Issues
+### Authentication Issues
 
 ```bash
-# Reinstall hooks
-uv run pre-commit uninstall
-uv run pre-commit install
+# Check credentials
+cat .env | grep HCGATEWAY
 
-# Run manually
-uv run pre-commit run --all-files
+# Test API connectivity
+curl -X POST https://api.hcgateway.shuchir.dev/api/v2/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"your_user","password":"your_pass"}'
 ```
 
-### Quality Gate Failures
+### Quality Check Issues
 
 ```bash
 # Auto-fix most issues
 make format
 
-# Check what remains
+# Check remaining issues
 make lint
-
-# Fix manually, then rerun
-make quality-gate
 ```
 
 ### Docker Issues
 
 ```bash
-# Rebuild from scratch
+# Complete rebuild
 docker-compose down
 docker system prune -f
 docker-compose up --build
 ```
 
+### Debug Mode
+
+```bash
+# Enable debug logging
+LOGGING_LEVEL=DEBUG hcgateway-dashboard
+```
+
+## 🤝 Contributing
+
+1. **Fork** the repository
+2. **Create** feature branch (`git checkout -b feature/awesome-feature`)
+3. **Follow** quality standards (`make format && make lint && make test`)
+4. **Commit** changes (`git commit -m 'feat: add awesome feature'`)
+5. **Push** to branch (`git push origin feature/awesome-feature`)
+6. **Open** Pull Request
+
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/name`)
-3. Follow the quality standards (`make quality-gate`)
-4. Commit changes (`git commit -m 'feat: description'`)
-5. Push branch (`git push origin feature/name`)
-6. Open Pull Request
-
 ## 🆘 Support
 
 - **Issues**: [GitHub Issues](https://github.com/aingelmo/HCGateway-dashboard/issues)
-- **Email**: aingelmo@gmail.com
+- **Email**: <aingelmo@gmail.com>
 
 ---
 
-**Built with ⚡ Ruff optimization and 🛡️ enterprise-grade quality control**
-
-# Copy environment template
-
-cp .env.example .env
-
-# Edit .env with your credentials
-
-# Build and run with Docker Compose
-
-docker-compose up --build
-
-# Access the application
-
-open http://localhost:8501
-
-````
-
-### Option 3: Development Setup
-
-```bash
-# Install with development dependencies
-pip install -e ".[dev]"
-
-# Run development container with hot reload
-docker-compose --profile dev up --build
-
-# Access development server
-open http://localhost:8502
-````
-
-## 🔧 Configuration
-
-The application can be configured through environment variables or a `.env` file:
-
-| Variable             | Description                                 | Default  |
-| -------------------- | ------------------------------------------- | -------- |
-| `HCGATEWAY_USERNAME` | HCGateway API username                      | Required |
-| `HCGATEWAY_PASSWORD` | HCGateway API password                      | Required |
-| `LOGGING_LEVEL`      | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO`   |
-
-## 🐳 Docker Deployment
-
-### Production Deployment
-
-```bash
-# Production build (optimized, secure)
-docker-compose up --build
-
-# Or build specific production target
-docker build --target production -t hcgateway-dashboard .
-docker run -p 8501:8501 --env-file .env hcgateway-dashboard
-```
-
-### Development Deployment
-
-```bash
-# Development build (with dev tools, hot reload)
-docker-compose --profile dev up --build
-```
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-pytest
-
-# Run with coverage report
-pytest --cov=hcgateway_dashboard --cov-report=html
-
-# Run specific test file
-pytest tests/test_api_client.py -v
-```
-
-## 🔍 Code Quality
-
-```bash
-# Format code
-ruff format .
-
-# Lint code
-ruff check .
-
-# Type checking
-mypy src tests
-
-# Run all quality checks
-ruff check . && mypy src tests && pytest
-```
-
-## 📊 Usage
-
-1. **Authentication**: Enter your HCGateway credentials or set them in environment variables
-2. **Date Selection**: Choose your desired date range (defaults to last month)
-3. **Data Visualization**: View your steps data in interactive charts and tables
-
-## 🏢 Production Considerations
-
-### Security Features
-
-- Non-root container user
-- Environment-based secret management
-- XSRF protection enabled
-- Secure token management with automatic refresh
-- Input validation with Pydantic models
-
-### Performance Optimizations
-
-- Multi-stage Docker builds
-- Efficient dependency caching
-- Minimal base image (python:3.13-slim)
-- Health checks for container orchestration
-
-### Monitoring & Observability
-
-- Structured logging with correlation IDs
-- Health check endpoints
-- Comprehensive error handling
-- Performance metrics ready
-
-## 🔄 CI/CD Integration
-
-This package is designed to integrate seamlessly with modern CI/CD pipelines:
-
-```yaml
-# Example GitHub Actions workflow
-name: Test and Deploy
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.13"
-      - run: pip install -e ".[dev]"
-      - run: ruff check .
-      - run: mypy src tests
-      - run: pytest --cov=hcgateway_dashboard
-
-  deploy:
-    needs: test
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - run: docker build -t hcgateway-dashboard .
-      - run: docker push your-registry/hcgateway-dashboard
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes following the coding standards
-4. Run tests and quality checks
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-For support, email aingelmo@gmail.com or create an issue on GitHub.
-
----
-
-Built with ❤️ for the HCGateway community
+Built with ⚡ Ruff optimization and 🛡️ enterprise-grade quality control
