@@ -282,16 +282,12 @@ dev = [
     { name = "pytest-cov" },
     { name = "pytest-mock" },
     { name = "ruff" },
+    { name = "types-requests" },
 ]
 test = [
     { name = "httpx" },
     { name = "pytest" },
     { name = "pytest-mock" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "types-requests" },
 ]
 
 [package.metadata]
@@ -312,11 +308,9 @@ requires-dist = [
     { name = "requests", specifier = ">=2.32.4" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.7" },
     { name = "streamlit", specifier = ">=1.47.1" },
+    { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.32.4.20250611" },
 ]
 provides-extras = ["dev", "test"]
-
-[package.metadata.requires-dev]
-dev = [{ name = "types-requests", specifier = ">=2.32.4.20250611" }]
 
 [[package]]
 name = "httpcore"

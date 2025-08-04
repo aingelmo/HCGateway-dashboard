@@ -40,6 +40,7 @@ dev = [
     "bandit>=1.8.6",
     "detect-secrets>=1.5.0",
     "httpx>=0.28.1",
+    "types-requests>=2.32.4.20250611",
 ]
 test = ["pytest>=8.4.1", "pytest-mock>=3.14.1", "httpx>=0.28.1"]
 
@@ -146,9 +147,9 @@ line-ending  = "auto"
 quote-style  = "double"
 
 [tool.mypy]
-python_version         = "3.13"
-ignore_missing_imports = true
 follow_imports         = "skip"
+ignore_missing_imports = true
+python_version         = "3.13"
 
 [tool.pytest.ini_options]
 addopts = [
@@ -186,8 +187,3 @@ exclude_lines = [
 # Security scanner configuration
 exclude_dirs = ["tests", ".venv", "__pycache__"]
 skips        = ["B101"]                          # Skip assert_used test since we use asserts in tests
-
-[dependency-groups]
-dev = [
-    "types-requests>=2.32.4.20250611",
-]
