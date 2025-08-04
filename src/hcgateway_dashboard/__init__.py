@@ -14,7 +14,6 @@ __email__ = "aingelmo@gmail.com"
 from hcgateway_dashboard.dashboard import Dashboard
 from hcgateway_dashboard.models import StepsData, StepsRecord
 
-
 __all__ = [
     "Dashboard",
     "StepsData",

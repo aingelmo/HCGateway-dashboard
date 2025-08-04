@@ -8,7 +8,7 @@ import streamlit as st
 
 from hcgateway_dashboard.api_client import HCGatewayClient
 from hcgateway_dashboard.config import DATE_RANGE_LENGTH, HCGATEWAY_PASSWORD, HCGATEWAY_USERNAME
-from hcgateway_dashboard.models import validate_steps_list
+from hcgateway_dashboard.models.steps import validate_steps_list
 
 
 class Dashboard:
@@ -115,7 +115,9 @@ class Dashboard:
             st.info("Attempting to fetch steps from API...")
             steps = self.fetch_steps_for_range(username, password, start_date, end_date)
             if not steps:
-                st.warning("No steps data found. Check the query, credentials, and API connectivity.")
+                st.warning(
+                    "No steps data found. Check the query, credentials, and API connectivity.",
+                )
                 return
 
             st.success("Steps data fetched successfully.")

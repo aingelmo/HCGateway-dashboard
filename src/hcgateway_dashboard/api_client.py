@@ -8,7 +8,6 @@ import requests
 
 from hcgateway_dashboard.config import TOKEN_EXPIRY_MARGIN_SECONDS
 
-
 logger = logging.getLogger("hcgateway.api_client")
 
 
