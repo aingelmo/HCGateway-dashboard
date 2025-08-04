@@ -1,13 +1,14 @@
-version: "3.8"
+name: hcgateway
 
 services:
-  hcgateway-dashboard:
+  dashboard:
+    container_name: hcgateway_dashboard
     build: .
     ports:
-      - "8501:8501"
+      - 8501:8501
     environment:
-      - HCGATEWAY_USERNAME=${HCGATEWAY_USERNAME}
-      - HCGATEWAY_PASSWORD=${HCGATEWAY_PASSWORD}
-      - LOGGING_LEVEL=${LOGGING_LEVEL:-INFO}
+      HCGATEWAY_USERNAME: ${HCGATEWAY_USERNAME}
+      HCGATEWAY_PASSWORD: ${HCGATEWAY_PASSWORD}
+      LOGGING_LEVEL: ${LOGGING_LEVEL:-INFO}
     env_file:
       - .env
